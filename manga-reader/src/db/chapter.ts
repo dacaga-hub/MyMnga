@@ -1,0 +1,32 @@
+import { getDb } from './index'
+import type { Chapter } from '../types'
+
+export async function getChaptersByManga(mangaId: number): Promise<Chapter[]> {
+  const db = await getDb()
+  return await db.select(
+    'SELECT * FROM chapters WHERE manga_id = ? ORDER BY number ASC',
+    [mangaId]
+  )
+}
+
+export async function insertChapter(chapter: Omit<Chapter, 'id' | 'created_at'>): Promise<number> {
+  const db = await getDb()
+  const result = await db.execute(
+    'INSERT INTO chapters (manga_id, number, title, folder_path, read, last_page) VALUES (?, ?, ?, ?, ?, ?)',
+    [chapter.manga_id, chapter.number, chapter.title ?? null, chapter.folder_path, chapter.read ? 1 : 0, chapter.last_page]
+  )
+  return result.lastInsertId ?? 0
+}
+
+export async function updateChapterProgress(id: number, lastPage: number, read: boolean): Promise<void> {
+  const db = await getDb()
+  await db.execute(
+    'UPDATE chapters SET last_page = ?, read = ? WHERE id = ?',
+    [lastPage, read ? 1 : 0, id]
+  )
+}
+
+export async function deleteChapter(id: number): Promise<void> {
+  const db = await getDb()
+  await db.execute('DELETE FROM chapters WHERE id = ?', [id])
+}

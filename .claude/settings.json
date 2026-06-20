@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "ExampleToolName",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "# SCAFFOLD (does nothing): matcher 'ExampleToolName' never matches a real tool. To use, change matcher to a real tool name (e.g. \"Bash\" or \"Write|Edit\") and replace this command. The tool-call JSON arrives on stdin; parse the file path with: node -e 'let d=\"\";process.stdin.on(\"data\",c=>d+=c).on(\"end\",()=>{const j=JSON.parse(d);process.stdout.write((j.tool_input&&j.tool_input.command)||\"\")})'. Exit code 2 from a PreToolUse hook BLOCKS the tool and feeds stderr back to Claude.\nexit 0",
+            "statusMessage": "Example PreToolUse hook (placeholder — never fires)"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Auto-formatting edited file",
+            "command": "f=$(node -e 'let d=\"\";process.stdin.on(\"data\",c=>d+=c).on(\"end\",()=>{try{const j=JSON.parse(d);const p=(j.tool_input&&j.tool_input.file_path)||(j.tool_response&&j.tool_response.filePath)||\"\";process.stdout.write(p)}catch(e){}})'); case \"$f\" in *.rs) rustfmt \"$f\" 2>/dev/null;; *.vue|*.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs|*.json|*.css|*.scss|*.html|*.md|*.yaml|*.yml) ( cd \"$(dirname \"$f\")\" && npx --no-install prettier --write \"$f\" ) >/dev/null 2>&1;; esac; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

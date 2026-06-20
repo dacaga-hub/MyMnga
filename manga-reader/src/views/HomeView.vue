@@ -3,18 +3,19 @@
     <!-- Hero -->
     <section class="hero">
       <div class="hero-bg" />
-      <div class="hero-content">
-        <span class="hero-label">MASTERPIECE SELECTION</span>
-        <h1 class="hero-title">VAGABOND</h1>
-        <p class="hero-desc">
-          A fictionalized account of the life of Japanese swordsman
-          Musashi Miyamoto, based on Eiji Yoshikawa's novel Musashi.
-        </p>
-        <div class="hero-actions">
-          <button class="btn-primary">READ VOLUME 01</button>
-          <button class="btn-ghost">ADD TO LIBRARY</button>
+        <div class="hero-content">
+            <span class="hero-label">MASTERPIECE SELECTION</span>
+            <h1 class="hero-title">VAGABOND</h1>
+            <p class="hero-desc">
+                A fictionalized account of the life of Japanese swordsman
+                Musashi Miyamoto, based on Eiji Yoshikawa's novel Musashi.
+            </p>
+            <div class="hero-actions">
+                <button class="btn-primary">READ VOLUME 01</button>
+                <button class="btn-ghost">ADD TO LIBRARY</button>
+                <ImportManga />
+            </div>
         </div>
-      </div>
     </section>
         <!-- Trending Now -->
     <section class="section">
@@ -100,6 +101,16 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { useLibraryStore } from '../stores/libraryStore'
+import ImportManga from '../components/library/ImportManga.vue'
+
+const store = useLibraryStore()
+
+onMounted(async () => {
+  await store.fetchMangas()
+})
+
 const recentItems = [
   { title: 'OYASUMI PUNPUN', time: '3 HOURS AGO' },
   { title: 'MONSTER', time: '4 HOURS AGO' },
