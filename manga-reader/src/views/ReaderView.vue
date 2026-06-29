@@ -5,7 +5,7 @@
     <header class="reader-topbar">
       <div class="topbar-left">
         <span class="reading-now">READING NOW</span>
-        <h2 class="chapter-title">Vagabond: Chapter 327</h2>
+        <h2 class="chapter-title">{{ chapter?.title }}</h2>
       </div>
       <div class="topbar-center">
         <span class="page-info">📄 Page {{ currentPage }} of {{ pages.length }}</span>      </div>
@@ -35,6 +35,7 @@
     </div>
 
     <!-- Bottom Panel -->
+    <!--
     <div class="bottom-panel">
       <div class="panel-left">
         <h3 class="panel-title">| The Art of Stillness</h3>
@@ -73,6 +74,7 @@
         </div>
       </div>
     </div>
+    -->
 
   </div>
 </template>
@@ -83,26 +85,28 @@
   import { readDir } from '@tauri-apps/plugin-fs'
   import { convertFileSrc } from '@tauri-apps/api/core'
   import { getChapterById } from '../db/chapter'
+  import type { Chapter } from '../types'
 
   const route = useRoute()
 
   const pages = ref<string[]>([])
   const currentPage = ref(1)
   const doublePage = ref(false)
+  const chapter = ref<Chapter | null>(null)
 
   onMounted(async () => {
     const chapterId = Number(route.params.chapterId)
-    const chapter = await getChapterById(chapterId)
-    if (!chapter) return
+    chapter.value = await getChapterById(chapterId)
+    if (!chapter.value) return
 
-    const entries = await readDir(chapter.folder_path)
+    const entries = await readDir(chapter.value.folder_path)
 
     const images = entries
       .filter(e => e.name && /\.(jpg|jpeg|png|webp)$/i.test(e.name))
       .sort((a, b) => a.name!.localeCompare(b.name!))
 
     pages.value = images.map(img =>
-      convertFileSrc(`${chapter.folder_path}/${img.name}`)
+      convertFileSrc(`${chapter.value!.folder_path}/${img.name}`)
     )
   })
 
