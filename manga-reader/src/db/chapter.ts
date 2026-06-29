@@ -30,3 +30,9 @@ export async function deleteChapter(id: number): Promise<void> {
   const db = await getDb()
   await db.execute('DELETE FROM chapters WHERE id = ?', [id])
 }
+
+export async function getChapterById(id: number): Promise<Chapter | null> {
+  const db = await getDb()
+  const results = await db.select<Chapter[]>('SELECT * FROM chapters WHERE id = ?', [id])
+  return results[0] ?? null
+}

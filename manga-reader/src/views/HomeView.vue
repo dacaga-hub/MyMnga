@@ -17,6 +17,30 @@
             </div>
         </div>
     </section>
+    <!-- My Library -->
+    <section class="section" v-if="store.mangas.length > 0">
+      <div class="section-header">
+        <h2 class="section-title">My Library</h2>
+      </div>
+      <div class="library-grid">
+        <RouterLink
+          v-for="manga in store.mangas"
+          :key="manga.id"
+          :to="`/manga/${manga.id}`"
+          class="library-item"
+        >
+          <div class="library-cover">
+            <img
+              v-if="manga.cover_path"
+              :src="convertFileSrc(manga.cover_path)"
+              :alt="manga.title"
+              class="library-cover-img"
+            />
+          </div>
+          <h4 class="library-title">{{ manga.title }}</h4>
+        </RouterLink>
+      </div>
+    </section>
         <!-- Trending Now -->
     <section class="section">
     <div class="section-header">
@@ -104,6 +128,7 @@
 import { onMounted } from 'vue'
 import { useLibraryStore } from '../stores/libraryStore'
 import ImportManga from '../components/library/ImportManga.vue'
+import { convertFileSrc } from '@tauri-apps/api/core'
 
 const store = useLibraryStore()
 
@@ -414,4 +439,39 @@ const recentItems = [
   margin-bottom: 16px;
 }
 
+.library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.library-item {
+  text-decoration: none;
+  color: white;
+  cursor: pointer;
+}
+
+.library-cover {
+  width: 100%;
+  aspect-ratio: 3/4;
+  background-color: #1a1a1a;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: opacity 0.2s;
+}
+
+.library-item:hover .library-cover {
+  opacity: 0.8;
+}
+
+.library-title {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.library-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 </style>

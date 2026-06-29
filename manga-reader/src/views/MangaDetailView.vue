@@ -83,14 +83,18 @@
     </div>
 
     <div class="chapter-list">
-        <div class="chapter-item" v-for="chapter in chapters" :key="chapter.number">
+      <RouterLink
+        v-for="chapter in store.currentChapters"
+        :key="chapter.id"
+        :to="`/reader/${chapter.id}`"
+        class="chapter-item"
+      >
         <span class="chapter-number">{{ chapter.number }}</span>
         <div class="chapter-info">
-            <h4 class="chapter-title">{{ chapter.title }}</h4>
-            <span class="chapter-time">{{ chapter.time }}</span>
+          <h4 class="chapter-title">{{ chapter.title }}</h4>
         </div>
-        <span class="chapter-pages">{{ chapter.pages }} PAGES</span>
-        </div>
+        <span class="chapter-pages" v-if="chapter.read">READ</span>
+      </RouterLink>
     </div>
 
     <div class="load-more">
@@ -101,12 +105,18 @@
 </template>
 
 <script setup lang="ts">
-    const chapters = [
-    { number: 152, title: 'Massacre at the Theater', time: 'UPLOADED 2 HOURS AGO', pages: 20 },
-    { number: 151, title: 'Returning Home', time: 'UPLOADED 1 WEEK AGO', pages: 24 },
-    { number: 150, title: 'The Next Destination', time: 'UPLOADED 2 WEEKS AGO', pages: 21 },
-    { number: 149, title: 'A Quiet Conversation', time: 'UPLOADED 3 WEEKS AGO', pages: 23 },
-    ]
+import { onMounted } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
+import { useLibraryStore } from '../stores/libraryStore'
+
+const route = useRoute()
+const store = useLibraryStore()
+
+const mangaId = Number(route.params.id)
+
+onMounted(async () => {
+  await store.fetchChapters(mangaId)
+})
 </script>
 
 <style scoped>
@@ -385,6 +395,11 @@
 .btn-ghost:hover {
   color: white;
   border-color: #ffffff;
+}
+
+.chapter-item {
+  text-decoration: none;
+  color: inherit;
 }
 
 </style>

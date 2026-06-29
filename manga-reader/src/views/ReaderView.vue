@@ -8,8 +8,7 @@
         <h2 class="chapter-title">Vagabond: Chapter 327</h2>
       </div>
       <div class="topbar-center">
-        <span class="page-info">📄 Page {{ currentPage }} of {{ totalPages }}</span>
-      </div>
+        <span class="page-info">📄 Page {{ currentPage }} of {{ pages.length }}</span>      </div>
       <div class="topbar-right">
         <button class="btn-fit">⊞ Fit to Width</button>
       </div>
@@ -18,16 +17,19 @@
     <!-- Page Viewer -->
     <div class="viewer" @click="nextPage">
       <div class="page-container">
-        <div class="page-placeholder" />
-      </div>
+      <img
+        v-if="pages.length"
+        :src="pages[currentPage - 1]"
+        class="page-image"
+      />
+    </div>
 
       <!-- Floating Controls -->
       <div class="floating-controls">
         <button class="ctrl-btn" @click.stop="toggleGrid">⊞</button>
         <button class="ctrl-btn" @click.stop="prevPage">⏮</button>
         <span class="ctrl-page">{{ currentPage }}</span>
-        <span class="ctrl-sep">{{ totalPages }}</span>
-        <button class="ctrl-btn" @click.stop="nextPage">⏭</button>
+        <span class="ctrl-sep">{{ pages.length }}</span>        <button class="ctrl-btn" @click.stop="nextPage">⏭</button>
         <button class="ctrl-btn" @click.stop>🔖</button>
       </div>
     </div>
@@ -76,21 +78,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+  import { ref, onMounted } from 'vue'
+  import { useRoute } from 'vue-router'
+  import { readDir } from '@tauri-apps/plugin-fs'
+  import { convertFileSrc } from '@tauri-apps/api/core'
+  import { getChapterById } from '../db/chapter'
 
-const currentPage = ref(14)
-const totalPages = ref(28)
-const doublePage = ref(false)
+  const route = useRoute()
 
-function nextPage() {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
+  const pages = ref<string[]>([])
+  const currentPage = ref(1)
+  const doublePage = ref(false)
 
-function prevPage() {
-  if (currentPage.value > 1) currentPage.value--
-}
+  onMounted(async () => {
+    const chapterId = Number(route.params.chapterId)
+    const chapter = await getChapterById(chapterId)
+    if (!chapter) return
 
-function toggleGrid() {}
+    const entries = await readDir(chapter.folder_path)
+
+    const images = entries
+      .filter(e => e.name && /\.(jpg|jpeg|png|webp)$/i.test(e.name))
+      .sort((a, b) => a.name!.localeCompare(b.name!))
+
+    pages.value = images.map(img =>
+      convertFileSrc(`${chapter.folder_path}/${img.name}`)
+    )
+  })
+
+  function nextPage() {
+    if (currentPage.value < pages.value.length) currentPage.value++
+  }
+
+  function prevPage() {
+    if (currentPage.value > 1) currentPage.value--
+  }
+
+  function toggleGrid() {}
 </script>
 
 <style scoped>
@@ -344,5 +368,12 @@ function toggleGrid() {}
 
 .toggle.on .toggle-knob {
   left: 18px;
+}
+
+.page-image {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 4px;
 }
 </style>

@@ -6,8 +6,6 @@
   "permissions": [
     "core:default",
     "opener:default",
-    "dialog:allow-open",
-    "dialog:allow-message",
     "fs:allow-read-file",
     "fs:allow-read-dir",
     "fs:allow-read-text-file",
@@ -17,6 +15,16 @@
     "sql:default",
     "sql:allow-execute",
     "sql:allow-select",
-    "sql:allow-load"
+    "sql:allow-load",
+    "dialog:allow-open",
+    "dialog:allow-message",
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [{ "path": "**" }]
+    }
   ]
 }
