@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { Manga, Chapter } from '../types'
 import { getAllMangas, insertManga, deleteManga } from '../db/manga'
-import { getChaptersByManga, insertChapter } from '../db/chapter'
+import { getChaptersByManga, insertChapter, deleteChaptersByManga } from '../db/chapter'
 
 export const useLibraryStore = defineStore('library', () => {
   const mangas = ref<Manga[]>([])
@@ -22,9 +22,10 @@ export const useLibraryStore = defineStore('library', () => {
   }
 
   async function removeManga(id: number) {
-    await deleteManga(id)
-    await fetchMangas()
-  }
+  await deleteChaptersByManga(id)
+  await deleteManga(id)
+  await fetchMangas()
+}
 
   async function fetchChapters(mangaId: number) {
     currentChapters.value = await getChaptersByManga(mangaId)

@@ -80,11 +80,11 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted, watch } from 'vue'
   import { useRoute } from 'vue-router'
   import { readDir } from '@tauri-apps/plugin-fs'
   import { convertFileSrc } from '@tauri-apps/api/core'
-  import { getChapterById } from '../db/chapter'
+  import { getChapterById, updateChapterProgress  } from '../db/chapter'
   import type { Chapter } from '../types'
 
   const route = useRoute()
@@ -108,6 +108,10 @@
     pages.value = images.map(img =>
       convertFileSrc(`${chapter.value!.folder_path}/${img.name}`)
     )
+    const saved = chapter.value.last_page
+      if (saved > 0 && saved <= pages.value.length) {
+        currentPage.value = saved
+      }
   })
 
   function nextPage() {
@@ -119,6 +123,13 @@
   }
 
   function toggleGrid() {}
+
+  watch(currentPage, (page) => {
+  if (chapter.value) {
+    const isRead = page >= pages.value.length
+    updateChapterProgress(chapter.value.id!, page, isRead)
+  }
+})
 </script>
 
 <style scoped>

@@ -9,6 +9,7 @@
           <span class="tag-status">{{ manga.status.toUpperCase() }}</span>
         </div>
         <h1 class="banner-title">{{ manga.title }}</h1>
+        <button class="btn-delete" @click="confirmDelete">🗑 DELETE</button>
         <div class="banner-meta">
           <div class="meta-item" v-if="manga.author">
             <span class="meta-label">AUTHOR</span>
@@ -93,12 +94,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { useLibraryStore } from '../stores/libraryStore'
 import { getMangaById } from '../db/manga'
 import type { Manga } from '../types'
+import { ask } from '@tauri-apps/plugin-dialog'
 
 const route = useRoute()
+const router = useRouter()
 const store = useLibraryStore()
 
 const mangaId = Number(route.params.id)
@@ -108,6 +111,21 @@ onMounted(async () => {
   manga.value = await getMangaById(mangaId)
   await store.fetchChapters(mangaId)
 })
+
+async function confirmDelete() {
+  if (!manga.value) return
+
+  const yes = await ask(`Delete "${manga.value.title}" and all its chapters?`, {
+    title: 'Delete manga',
+    kind: 'warning',
+  })
+
+  if (yes) {
+    await store.removeManga(manga.value.id!)
+    router.push('/')
+  }
+}
+
 </script>
 
 <style scoped>
@@ -391,6 +409,24 @@ onMounted(async () => {
 .chapter-item {
   text-decoration: none;
   color: inherit;
+}
+
+.btn-delete {
+  padding: 12px 28px;
+  background-color: transparent;
+  color: #ff6b35;
+  border: 1px solid #ff6b35;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete:hover {
+  background-color: #ff6b35;
+  color: white;
 }
 
 </style>

@@ -25,3 +25,9 @@ export async function deleteManga(id: number): Promise<void> {
   const db = await getDb()
   await db.execute('DELETE FROM mangas WHERE id = ?', [id])
 }
+
+export async function getMangaByTitle(title: string): Promise<Manga | null> {
+  const db = await getDb()
+  const results = await db.select<Manga[]>('SELECT * FROM mangas WHERE title = ?', [title])
+  return results[0] ?? null
+}

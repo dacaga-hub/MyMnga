@@ -10,6 +10,7 @@
 import { open, message } from '@tauri-apps/plugin-dialog'
 import { readDir } from '@tauri-apps/plugin-fs'
 import { useLibraryStore } from '../../stores/libraryStore'
+import { getMangaByTitle } from '../../db/manga'
 
 const store = useLibraryStore()
 
@@ -26,6 +27,15 @@ async function selectFolder() {
 
     const parts = (mangaPath as string).replace(/\\/g, '/').split('/')
     const title = parts[parts.length - 1]
+
+    const existing = await getMangaByTitle(title)
+    if (existing) {
+      await message(`"${title}" is already in your library.`, {
+        title: 'Already imported',
+        kind: 'warning',
+      })
+      return
+    }
 
     const coverEntry = entries.find(e =>
       e.name && /^cover\.(jpg|jpeg|png|webp)$/i.test(e.name)
