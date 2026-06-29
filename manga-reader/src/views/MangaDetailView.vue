@@ -4,41 +4,27 @@
     <!-- Banner -->
     <section class="banner">
       <div class="banner-bg" />
-      <div class="banner-content">
+      <div class="banner-content" v-if="manga">
         <div class="banner-tags">
-          <span class="tag-status">ONGOING</span>
-          <span class="tag-genre">ACTION / SUPERNATURAL</span>
+          <span class="tag-status">{{ manga.status.toUpperCase() }}</span>
         </div>
-        <h1 class="banner-title">Chainsaw Man</h1>
+        <h1 class="banner-title">{{ manga.title }}</h1>
         <div class="banner-meta">
-          <div class="meta-item">
+          <div class="meta-item" v-if="manga.author">
             <span class="meta-label">AUTHOR</span>
-            <span class="meta-value">Tatsuki Fujimoto</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">RELEASE</span>
-            <span class="meta-value">2018</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">MAGAZINE</span>
-            <span class="meta-value">Weekly Shōnen Jump</span>
+            <span class="meta-value">{{ manga.author }}</span>
           </div>
         </div>
-        <button class="btn-primary">▶ READ LATEST CHAPTER</button>
       </div>
     </section>
         <!-- Narrative + Stats -->
+    <!--
     <section class="section">
     <div class="narrative-grid">
         <div class="narrative-left">
         <h2 class="section-label">THE NARRATIVE</h2>
         <p class="narrative-text">
-            Denji is a teenage boy living with a Chainsaw Devil named Pochita.
-            Due to the debt his father left behind, he has been living a rock-bottom
-            life while repaying his debt by harvesting devil corpses with Pochita.
-            One day, Denji is betrayed and killed. As his consciousness fades, he
-            makes a contract with Pochita and gets revived as "Chainsaw Man" — a man
-            with a devil's heart.
+            -----
         </p>
         <div class="narrative-details">
             <div class="detail-item">
@@ -76,6 +62,7 @@
         </div>
     </div>
     </section>
+    -->
         <!-- Recent Releases -->
     <section class="section">
     <div class="section-header">
@@ -105,16 +92,20 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useLibraryStore } from '../stores/libraryStore'
+import { getMangaById } from '../db/manga'
+import type { Manga } from '../types'
 
 const route = useRoute()
 const store = useLibraryStore()
 
 const mangaId = Number(route.params.id)
+const manga = ref<Manga | null>(null)
 
 onMounted(async () => {
+  manga.value = await getMangaById(mangaId)
   await store.fetchChapters(mangaId)
 })
 </script>
