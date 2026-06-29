@@ -42,3 +42,12 @@ export async function deleteChaptersByManga(mangaId: number): Promise<void> {
   await db.execute('DELETE FROM chapters WHERE manga_id = ?', [mangaId])
 }
 
+export async function getNextChapter(mangaId: number, currentNumber: number): Promise<Chapter | null> {
+  const db = await getDb()
+  const results = await db.select<Chapter[]>(
+    'SELECT * FROM chapters WHERE manga_id = ? AND number > ? ORDER BY number ASC LIMIT 1',
+    [mangaId, currentNumber]
+  )
+  return results[0] ?? null
+}
+

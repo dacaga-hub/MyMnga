@@ -10,6 +10,7 @@
       <div class="topbar-center">
         <span class="page-info">📄 Page {{ currentPage }} of {{ pages.length }}</span>      </div>
       <div class="topbar-right">
+        <button class="btn-fit" @click="goToNextChapter">NEXT CHAPTER ▶</button>
         <button class="btn-fit">⊞ Fit to Width</button>
       </div>
     </header>
@@ -80,21 +81,28 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, watch } from 'vue'
-  import { useRoute } from 'vue-router'
+  import { ref, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import { readDir } from '@tauri-apps/plugin-fs'
   import { convertFileSrc } from '@tauri-apps/api/core'
-  import { getChapterById, updateChapterProgress  } from '../db/chapter'
+  import { getChapterById, updateChapterProgress, getNextChapter  } from '../db/chapter'
   import type { Chapter } from '../types'
+  import { message } from '@tauri-apps/plugin-dialog'
 
   const route = useRoute()
-
+  const router = useRouter()
   const pages = ref<string[]>([])
   const currentPage = ref(1)
   const doublePage = ref(false)
   const chapter = ref<Chapter | null>(null)
 
-  onMounted(async () => {
+  watch(
+    () => route.params.chapterId,
+    () => loadChapter(),
+    { immediate: true }
+  )
+
+  async function loadChapter() {
     const chapterId = Number(route.params.chapterId)
     chapter.value = await getChapterById(chapterId)
     if (!chapter.value) return
@@ -108,11 +116,14 @@
     pages.value = images.map(img =>
       convertFileSrc(`${chapter.value!.folder_path}/${img.name}`)
     )
+
     const saved = chapter.value.last_page
-      if (saved > 0 && saved <= pages.value.length) {
-        currentPage.value = saved
-      }
-  })
+    if (saved > 0 && saved <= pages.value.length) {
+      currentPage.value = saved
+    } else {
+      currentPage.value = 1
+    }
+  }
 
   function nextPage() {
     if (currentPage.value < pages.value.length) currentPage.value++
@@ -130,6 +141,19 @@
     updateChapterProgress(chapter.value.id!, page, isRead)
   }
 })
+  async function goToNextChapter() {
+    console.log('NEXT clicked', chapter.value)
+    if (!chapter.value) return
+
+    const next = await getNextChapter(chapter.value.manga_id, chapter.value.number)
+    console.log('NEXT chapter result y algo mas:', next)
+
+    if (next) {
+      router.push(`/reader/${next.id}`)
+    } else {
+      await message('You have reached the last chapter.', { title: 'End of manga', kind: 'info' })
+    }
+  }
 </script>
 
 <style scoped>
