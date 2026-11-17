@@ -93,7 +93,6 @@
   const router = useRouter()
   const pages = ref<string[]>([])
   const currentPage = ref(1)
-  const doublePage = ref(false)
   const chapter = ref<Chapter | null>(null)
 
   watch(
@@ -104,24 +103,30 @@
 
   async function loadChapter() {
     const chapterId = Number(route.params.chapterId)
-    chapter.value = await getChapterById(chapterId)
-    if (!chapter.value) return
+    pages.value = []
+    try {
+      chapter.value = await getChapterById(chapterId)
+      if (!chapter.value) return
 
-    const entries = await readDir(chapter.value.folder_path)
+      const entries = await readDir(chapter.value.folder_path)
 
-    const images = entries
-      .filter(e => e.name && /\.(jpg|jpeg|png|webp)$/i.test(e.name))
-      .sort((a, b) => a.name!.localeCompare(b.name!))
+      const images = entries
+        .filter(e => e.name && /\.(jpg|jpeg|png|webp)$/i.test(e.name))
+        .sort((a, b) => a.name!.localeCompare(b.name!, undefined, { numeric: true }))
 
-    pages.value = images.map(img =>
-      convertFileSrc(`${chapter.value!.folder_path}/${img.name}`)
-    )
+      pages.value = images.map(img =>
+        convertFileSrc(`${chapter.value!.folder_path}/${img.name}`)
+      )
 
-    const saved = chapter.value.last_page
-    if (saved > 0 && saved <= pages.value.length) {
-      currentPage.value = saved
-    } else {
-      currentPage.value = 1
+      const saved = chapter.value.last_page
+      if (saved > 0 && saved <= pages.value.length) {
+        currentPage.value = saved
+      } else {
+        currentPage.value = 1
+      }
+    } catch (err) {
+      console.error('Reader load error:', err)
+      await message(`Could not open this chapter.\n${err}`, { title: 'Reader error', kind: 'error' })
     }
   }
 
@@ -136,17 +141,15 @@
   function toggleGrid() {}
 
   watch(currentPage, (page) => {
-  if (chapter.value) {
-    const isRead = page >= pages.value.length
-    updateChapterProgress(chapter.value.id!, page, isRead)
-  }
-})
+    if (chapter.value && pages.value.length > 0) {
+      const isRead = page >= pages.value.length
+      updateChapterProgress(chapter.value.id!, page, isRead)
+    }
+  })
   async function goToNextChapter() {
-    console.log('NEXT clicked', chapter.value)
     if (!chapter.value) return
 
     const next = await getNextChapter(chapter.value.manga_id, chapter.value.number)
-    console.log('NEXT chapter result y algo mas:', next)
 
     if (next) {
       router.push(`/reader/${next.id}`)

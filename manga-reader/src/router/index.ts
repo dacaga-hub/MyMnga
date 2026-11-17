@@ -7,6 +7,7 @@ const router = createRouter({
     { path: '/', component: HomeView },
     { path: '/manga/:id', component: () => import('../views/MangaDetailView.vue') },
     { path: '/reader/:chapterId', component: () => import('../views/ReaderView.vue') },
+    { path: '/:pathMatch(.*)*', redirect: '/' },
   ]
 })
 
