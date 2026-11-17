@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [beta-manga-store]
+  push:
+    branches: [beta-manga-store]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: manga-reader
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: manga-reader/package-lock.json
+      - run: npm ci
+      - name: Typecheck
+        run: npx vue-tsc --noEmit
+      - name: Build
+        run: npx vite build
+
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: manga-reader/src-tauri
+    steps:
+      - uses: actions/checkout@v4
+      - name: System dependencies for Tauri
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: manga-reader/src-tauri
+      - name: Frontend dist placeholder (required by tauri::generate_context!)
+        run: mkdir -p ../dist
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings

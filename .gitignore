@@ -1,0 +1,19 @@
+# Secrets and local config
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+target/
+
+# Local databases and dumps
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+
+# OS / editors
+.DS_Store
+.idea/

@@ -5,7 +5,8 @@ description: Writes pull request descriptions. Use when create a PR, writing a P
 
 When writing a PR description:
 
-1. Run `git diff main...HEAD` to see all changes on this branch
+1. Run `git diff origin/beta-manga-store...HEAD` to see all changes on this branch
+   (feature branches target `beta-manga-store`; for a release PR `beta-manga-store → main` use `origin/main...HEAD`)
 2. Write a description following this format:
 
 ## What
